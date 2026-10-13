@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="مرصد أذكاري — لوحة تحليلات خاصة بالمطوّر" />
+  <title>مرصد أذكاري — لوحة المطوّر</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+    :root {
+      --ink: #10281f;
+      --ink-2: #345249;
+      --muted: #6c7c75;
+      --line: #dbe5df;
+      --canvas: #f5f8f6;
+      --surface: #ffffff;
+      --pine: #106044;
+      --pine-dark: #073c2b;
+      --mint: #d8f4e5;
+      --sky: #2779c6;
+      --sky-soft: #e2f0ff;
+      --amber: #c98112;
+      --amber-soft: #fff3d9;
+      --rose: #c54e5c;
+      --rose-soft: #fde8eb;
+      --shadow: 0 16px 38px rgba(17, 52, 38, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Cairo, Tahoma, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { min-height: 100vh; display: flex; }
+    .sidebar {
+      width: 248px;
+      flex: 0 0 248px;
+      color: #eaf6ef;
+      background: var(--pine-dark);
+      padding: 25px 17px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .brand { padding: 0 10px 28px; }
+    .brand-mark { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 35px; height: 35px; border-radius: 11px;
+      display: grid; place-items: center;
+      background: #e7f7ed; color: var(--pine-dark); font-size: 19px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+    }
+    .brand h1 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
+    .brand p { margin: 3px 0 0; color: #a9c6b6; font-size: 11px; }
+    .environment {
+      margin-top: 20px; display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 9px; border: 1px solid rgba(215,247,226,.20); border-radius: 99px;
+      color: #cfeedd; font-size: 10px; background: rgba(255,255,255,.06);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #70d9a0; box-shadow: 0 0 0 3px rgba(112,217,160,.14); }
+    .nav-label { color: #83a997; font-size: 10px; font-weight: 700; margin: 16px 11px 7px; }
+    .nav { list-style: none; padding: 0; margin: 0; }
+    .nav button {
+      color: #c2ddce; width: 100%; border: 0; background: transparent; border-radius: 10px;
+      padding: 10px 11px; text-align: right; display: flex; align-items: center; gap: 10px;
+      transition: .15s ease;
+    }
+    .nav button:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .nav button.active { background: #197151; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.09); }
+    .nav .nav-icon { width: 20px; text-align: center; font-size: 15px; }
+    .sidebar-footer { margin-top: auto; padding: 15px 10px 0; border-top: 1px solid rgba(255,255,255,.11); }
+    .privacy-mini { display: flex; gap: 8px; color: #acd0ba; font-size: 11px; line-height: 1.55; }
+    .privacy-mini b { color: #e1f5e8; display: block; font-size: 11px; }
+
+    main { flex: 1; min-width: 0; padding: 30px clamp(19px, 4vw, 62px) 46px; max-width: 1720px; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 25px; }
+    .eyebrow { color: var(--pine); font-weight: 800; letter-spacing: .2px; font-size: 11px; }
+    h2 { font-size: clamp(23px, 3vw, 31px); line-height: 1.2; letter-spacing: -.8px; margin: 5px 0 6px; }
+    .subtitle { color: var(--muted); margin: 0; font-size: 13px; }
+    .sample { color: var(--amber); background: var(--amber-soft); border: 1px solid #f7d798; border-radius: 99px; padding: 5px 10px; font-weight: 700; font-size: 10px; white-space: nowrap; }
+    .filters { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; margin-bottom: 21px; }
+    .range-group { display: flex; gap: 3px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); background: #eef3f0; }
+    .range-group button { padding: 7px 12px; border: 0; border-radius: 7px; color: var(--ink-2); background: transparent; font-size: 12px; font-weight: 700; }
+    .range-group button.active { color: #fff; background: var(--pine); box-shadow: 0 2px 6px rgba(16,96,68,.22); }
+    select { height: 36px; min-width: 138px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 9px; padding: 0 10px; background: var(--surface); outline-color: var(--pine); }
+    .spacer { flex: 1; }
+    .icon-button, .export-button {
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); height: 36px; padding: 0 11px; border-radius: 9px; font-weight: 700; font-size: 12px;
+    }
+    .export-button { color: #fff; background: var(--pine); border-color: var(--pine); }
+    .export-button:hover { background: var(--pine-dark); }
+
+    .kpis { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 13px; margin-bottom: 18px; }
+    .card { background: var(--surface); border: 1px solid #e3ebe6; border-radius: 14px; box-shadow: 0 5px 16px rgba(19,55,41,.035); }
+    .kpi { padding: 15px 16px 14px; min-height: 120px; position: relative; overflow: hidden; }
+    .kpi::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: var(--accent, var(--pine)); opacity: .9; }
+    .kpi-label { color: var(--muted); font-size: 11px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .kpi-icon { width: 25px; height: 25px; border-radius: 8px; display: grid; place-items: center; background: var(--soft, var(--mint)); color: var(--accent, var(--pine)); font-size: 13px; }
+    .kpi-value { direction: ltr; text-align: right; margin: 11px 0 4px; font-family: 'IBM Plex Mono', monospace; font-size: 25px; letter-spacing: -1px; font-weight: 600; }
+    .trend { direction: rtl; display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; }
+    .trend strong { color: var(--trend, var(--pine)); font-family: 'IBM Plex Mono', monospace; direction: ltr; }
+
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.78fr) minmax(300px, .92fr); gap: 18px; }
+    .section-card { padding: 19px; }
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+    .section-title { font-size: 15px; font-weight: 800; margin: 0; }
+    .section-note { color: var(--muted); margin: 2px 0 0; font-size: 10px; }
+    .metric-chip { color: var(--pine); background: var(--mint); padding: 4px 8px; border-radius: 99px; font-weight: 800; font-size: 10px; }
+    .chart-wrap { height: 231px; display: flex; flex-direction: column; }
+    .chart-summary { display: flex; gap: 22px; padding-bottom: 14px; border-bottom: 1px solid #eef2ef; }
+    .chart-summary span { color: var(--muted); font-size: 10px; }
+    .chart-summary b { display: block; color: var(--ink); direction: ltr; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 16px; margin-top: 1px; }
+    .bars { flex: 1; min-height: 124px; display: flex; gap: 8px; align-items: flex-end; padding: 15px 4px 0; border-bottom: 1px solid #dce6df; background: repeating-linear-gradient(to bottom, transparent 0, transparent 37px, #f0f4f1 38px); }
+    .bar-group { flex: 1; min-width: 20px; height: 100%; display: flex; align-items: flex-end; gap: 3px; position: relative; }
+    .bar { width: 50%; min-height: 5px; border-radius: 5px 5px 1px 1px; transition: height .4s cubic-bezier(.2,.7,.3,1); }
+    .bar.visitors { background: #2f8b68; }
+    .bar.sessions { background: #a4d8bc; }
+    .bar-group:hover .bar { filter: brightness(.85); }
+    .xlabels { display: flex; justify-content: space-between; padding: 7px 1px 0; color: #84938b; font-size: 9px; }
+    .legend { display: flex; gap: 14px; color: var(--muted); font-size: 10px; }
+    .legend i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; margin-left: 4px; }
+
+    .insight-list { display: grid; gap: 9px; }
+    .insight { padding: 10px; border-radius: 10px; border: 1px solid #e7eee9; display: flex; gap: 9px; align-items: flex-start; }
+    .insight-icon { width: 25px; height: 25px; border-radius: 8px; display: grid; place-items: center; flex: 0 0 auto; font-size: 12px; }
+    .insight b { font-size: 11px; display: block; line-height: 1.45; }
+    .insight span { color: var(--muted); display: block; font-size: 10px; margin-top: 2px; line-height: 1.5; }
+
+    .lower-grid { display: grid; grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+    .feature-table { width: 100%; border-collapse: collapse; }
+    .feature-table th { color: #78877f; padding: 0 0 9px; font-size: 10px; text-align: right; font-weight: 700; border-bottom: 1px solid #e9efeb; }
+    .feature-table td { padding: 11px 0; font-size: 11px; border-bottom: 1px solid #eff3f0; }
+    .feature-table tr:last-child td { border-bottom: 0; }
+    .feature-name { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .feature-mark { width: 25px; height: 25px; border-radius: 8px; display: grid; place-items: center; font-size: 12px; }
+    .number { font-family: 'IBM Plex Mono', monospace; direction: ltr; text-align: right; }
+    .progress-track { width: 100%; min-width: 70px; height: 6px; overflow: hidden; border-radius: 99px; background: #edf3ef; }
+    .progress-fill { height: 100%; border-radius: inherit; background: var(--fill, var(--pine)); }
+
+    .funnel { margin-top: 4px; display: grid; gap: 9px; }
+    .funnel-row { display: grid; grid-template-columns: 106px 1fr 44px; gap: 8px; align-items: center; color: var(--ink-2); font-size: 10px; }
+    .funnel-bar { height: 28px; display: flex; align-items: center; padding: 0 9px; min-width: 58px; border-radius: 7px; background: var(--funnel, var(--pine)); color: #fff; font-weight: 700; font-family: 'IBM Plex Mono', monospace; direction: ltr; }
+    .funnel-rate { direction: ltr; font-family: 'IBM Plex Mono', monospace; color: var(--muted); text-align: left; font-size: 10px; }
+    .decision-callout { margin-top: 15px; padding: 10px 11px; background: #f1f8f4; border-right: 3px solid var(--pine); border-radius: 7px; color: var(--ink-2); font-size: 10px; line-height: 1.7; }
+    .decision-callout b { color: var(--pine-dark); }
+
+    .privacy-strip { margin-top: 18px; padding: 12px 14px; background: #edf7f1; border: 1px solid #cfe8d9; border-radius: 12px; display: flex; gap: 10px; align-items: center; color: #24513d; font-size: 11px; }
+    .privacy-strip strong { color: var(--pine-dark); }
+    .toast { position: fixed; left: 24px; bottom: 24px; max-width: min(360px, calc(100vw - 48px)); padding: 11px 13px; border-radius: 10px; color: #f1fff6; background: #153d2d; box-shadow: 0 12px 30px rgba(0,0,0,.18); font-size: 11px; transform: translateY(90px); opacity: 0; transition: .25s ease; z-index: 4; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 1120px) { .kpis { grid-template-columns: repeat(3, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 810px) {
+      .shell { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; min-height: 0; padding: 14px 16px; }
+      .brand { display: flex; justify-content: space-between; align-items: center; padding: 0; }
+      .environment { margin-top: 0; }
+      .nav-label, .sidebar-footer { display: none; }
+      .nav { margin-top: 14px; display: flex; gap: 5px; overflow-x: auto; }
+      .nav button { white-space: nowrap; width: auto; padding: 8px 10px; }
+      main { padding: 24px 16px 36px; }
+      .topbar { display: block; }
+      .sample { display: inline-flex; margin-top: 12px; }
+      .filters { margin-top: 17px; }
+      .spacer { display: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .lower-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 450px) {
+      .kpis { grid-template-columns: 1fr; }
+      .range-group { width: 100%; }
+      .range-group button { flex: 1; padding-inline: 4px; }
+      select { flex: 1; min-width: 0; }
+      .icon-button, .export-button { flex: 1; }
+      .funnel-row { grid-template-columns: 94px 1fr 38px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="تنقل لوحة المطور">
+      <div class="brand">
+        <div class="brand-mark">
+          <div class="brand-icon">✦</div>
+          <div><h1>مرصد أذكاري</h1><p>لوحة قرار للمطوّر</p></div>
+        </div>
+        <div class="environment"><span class="dot"></span>بيئة العرض الآمنة</div>
+      </div>
+      <div class="nav-label">التحليلات</div>
+      <nav><ul class="nav">
+        <li><button class="active" data-view="نظرة عامة"><span class="nav-icon">◫</span>نظرة عامة</button></li>
+        <li><button data-view="المستخدمون"><span class="nav-icon">◉</span>المستخدمون</button></li>
+        <li><button data-view="التفاعلات"><span class="nav-icon">↗</span>التفاعلات</button></li>
+        <li><button data-view="مسارات الاستخدام"><span class="nav-icon">⤧</span>مسارات الاستخدام</button></li>
+        <li><button data-view="الاحتفاظ"><span class="nav-icon">◌</span>الاحتفاظ</button></li>
+      </ul></nav>
+      <div class="nav-label">الإدارة</div>
+      <nav><ul class="nav">
+        <li><button data-view="التنبيهات"><span class="nav-icon">♢</span>التنبيهات</button></li>
+        <li><button data-view="خصوصية القياس"><span class="nav-icon">⌘</span>خصوصية القياس</button></li>
+      </ul></nav>
+      <div class="sidebar-footer">
+        <div class="privacy-mini"><span>◌</span><div><b>خصوصية أولًا</b>بيانات مجمّعة، بلا أذكار أو موقع دقيق.</div></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">أذكاري / تحليلات المنتج</div>
+          <h2>كيف يتفاعل الناس مع التطبيق؟</h2>
+          <p class="subtitle">ملخص واضح يساعد على ترتيب أولويات التطوير، لا مجرد أرقام.</p>
+        </div>
+        <div class="sample">● بيانات عرض توضيحية — اربط مصدر البيانات الإنتاجي عند الحاجة</div>
+      </header>
+
+      <section class="filters" aria-label="فلاتر التقارير">
+        <div class="range-group" role="group" aria-label="الفترة">
+          <button data-range="today">اليوم</button>
+          <button class="active" data-range="week">7 أيام</button>
+          <button data-range="month">30 يومًا</button>
+        </div>
+        <select id="platform" aria-label="المنصة">
+          <option value="all">كل المنصات</option>
+          <option value="ios">iOS</option>
+          <option value="android">Android</option>
+          <option value="web">الويب</option>
+        </select>
+        <div class="spacer"></div>
+        <button class="icon-button" id="refresh" aria-label="تحديث البيانات">↻ تحديث</button>
+        <button class="export-button" id="export">⇩ تنزيل ملخص CSV</button>
+      </section>
+
+      <section class="kpis" aria-label="المؤشرات الرئيسية">
+        <article class="card kpi" style="--accent:#147554; --soft:#dff5e9; --trend:#147554">
+          <div class="kpi-label">زوار فريدون <span class="kpi-icon">◉</span></div>
+          <div class="kpi-value" id="uniqueVisitors">1,284</div>
+          <div class="trend"><strong id="uniqueTrend">+18.2%</strong><span>مقارنة بالفترة السابقة</span></div>
+        </article>
+        <article class="card kpi" style="--accent:#2779c6; --soft:#e2f0ff; --trend:#2779c6">
+          <div class="kpi-label">جلسات الاستخدام <span class="kpi-icon">↗</span></div>
+          <div class="kpi-value" id="sessions">2,046</div>
+          <div class="trend"><strong id="sessionTrend">+12.6%</strong><span>متوسط 1.59 جلسة/زائر</span></div>
+        </article>
+        <article class="card kpi" style="--accent:#c98112; --soft:#fff3d9; --trend:#b5740d">
+          <div class="kpi-label">مرات فتح التطبيق <span class="kpi-icon">◫</span></div>
+          <div class="kpi-value" id="opens">4,621</div>
+          <div class="trend"><strong id="opensTrend">+9.4%</strong><span>فتح في الخلفية لا يُحسب</span></div>
+        </article>
+        <article class="card kpi" style="--accent:#8b57ad; --soft:#f0e7f7; --trend:#80509d">
+          <div class="kpi-label">تسجيلات دخول ناجحة <span class="kpi-icon">✓</span></div>
+          <div class="kpi-value" id="logins">476</div>
+          <div class="trend"><strong id="loginTrend">+7.1%</strong><span>دون عرض بيانات شخصية</span></div>
+        </article>
+        <article class="card kpi" style="--accent:#c54e5c; --soft:#fde8eb; --trend:#bd4352">
+          <div class="kpi-label">الاحتفاظ اليوم السابع <span class="kpi-icon">◌</span></div>
+          <div class="kpi-value" id="retention">31.8%</div>
+          <div class="trend"><strong id="retentionTrend">+3.8 نقاط</strong><span>عادوا بعد 7 أيام</span></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="card section-card">
+          <div class="section-head">
+            <div><h3 class="section-title">الزيارات والجلسات</h3><p class="section-note" id="chartNote">آخر 7 أيام — التحديث اليومي عند 00:00</p></div>
+            <div class="legend"><span><i style="background:#2f8b68"></i>زوار</span><span><i style="background:#a4d8bc"></i>جلسات</span></div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-summary"><span>ذروة الزيارات<b id="peakVisitors">246</b></span><span>متوسط الجلسة<b id="avgSession">4د 38ث</b></span><span>أكثر ساعة نشاطًا<b id="peakHour">8:00 م</b></span></div>
+            <div class="bars" id="bars" aria-label="مخطط الزيارات والجلسات"></div>
+            <div class="xlabels" id="xlabels"></div>
+          </div>
+        </article>
+        <article class="card section-card">
+          <div class="section-head"><div><h3 class="section-title">ملاحظات قابلة للتنفيذ</h3><p class="section-note">إشارات موجزة لقرار التطوير التالي</p></div><span class="metric-chip">3 إشارات</span></div>
+          <div class="insight-list" id="insights">
+            <div class="insight"><div class="insight-icon" style="background:#dff5e9;color:#147554">↗</div><div><b>نمو صباحي واضح في فتح التطبيق</b><span>يرتفع الاستخدام بين 5:30 و8:00 ص؛ اختبر اختصار «أذكار الصباح» في الصفحة الأولى.</span></div></div>
+            <div class="insight"><div class="insight-icon" style="background:#fff3d9;color:#b5740d">!</div><div><b>التبسيح يبدأ كثيرًا ويكتمل أقل</b><span>اكتمال التسبيح 58% فقط؛ راجع وضوح اختيار العدد الافتراضي قبل إضافة مزايا جديدة.</span></div></div>
+            <div class="insight"><div class="insight-icon" style="background:#e2f0ff;color:#2779c6">⌁</div><div><b>الويب يجلب مستخدمين جدد أكثر</b><span>لكن العودة بعد أسبوع أقل من التطبيق؛ قد يستحق زر تثبيت التطبيق على الويب اختبارًا بسيطًا.</span></div></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="lower-grid">
+        <article class="card section-card">
+          <div class="section-head"><div><h3 class="section-title">المزايا التي يستخدمها الناس</h3><p class="section-note">عدد التفاعلات المكتملة، لا عدد النقرات فقط</p></div><span class="metric-chip" id="featureCount">5 مزايا</span></div>
+          <table class="feature-table">
+            <thead><tr><th>الميزة</th><th>استخدام مكتمل</th><th>الحصة</th></tr></thead>
+            <tbody id="features">
+              <tr><td><div class="feature-name"><span class="feature-mark" style="background:#e3f5eb">☼</span>أذكار الصباح</div></td><td class="number">985</td><td><div class="progress-track"><div class="progress-fill" style="width:82%;--fill:#147554"></div></div></td></tr>
+              <tr><td><div class="feature-name"><span class="feature-mark" style="background:#e7f1fd">◷</span>مواقيت الصلاة</div></td><td class="number">712</td><td><div class="progress-track"><div class="progress-fill" style="width:59%;--fill:#2779c6"></div></div></td></tr>
+              <tr><td><div class="feature-name"><span class="feature-mark" style="background:#fff2dc">◎</span>التسبيح</div></td><td class="number">520</td><td><div class="progress-track"><div class="progress-fill" style="width:43%;--fill:#c98112"></div></div></td></tr>
+              <tr><td><div class="feature-name"><span class="feature-mark" style="background:#f1e9f7">◒</span>أذكار المساء</div></td><td class="number">463</td><td><div class="progress-track"><div class="progress-fill" style="width:38%;--fill:#8b57ad"></div></div></td></tr>
+              <tr><td><div class="feature-name"><span class="feature-mark" style="background:#fde8eb">⌖</span>اتجاه القبلة</div></td><td class="number">279</td><td><div class="progress-track"><div class="progress-fill" style="width:23%;--fill:#c54e5c"></div></div></td></tr>
+            </tbody>
+          </table>
+        </article>
+        <article class="card section-card">
+          <div class="section-head"><div><h3 class="section-title">رحلة الاستخدام الأساسية</h3><p class="section-note">من فتح التطبيق إلى إنجاز فعل مفيد</p></div><span class="metric-chip">أذكار الصباح</span></div>
+          <div class="funnel" id="funnel">
+            <div class="funnel-row"><span>فتح التطبيق</span><div class="funnel-bar" style="width:100%;--funnel:#1d7a59">1,284</div><span class="funnel-rate">100%</span></div>
+            <div class="funnel-row"><span>فتح صفحة الأذكار</span><div class="funnel-bar" style="width:78%;--funnel:#398e6e">1,003</div><span class="funnel-rate">78.1%</span></div>
+            <div class="funnel-row"><span>بدء جلسة أذكار</span><div class="funnel-bar" style="width:60%;--funnel:#67ad8c">771</div><span class="funnel-rate">60.0%</span></div>
+            <div class="funnel-row"><span>إتمام الجلسة</span><div class="funnel-bar" style="width:47%;--funnel:#9acaaf">598</div><span class="funnel-rate">46.6%</span></div>
+          </div>
+          <div class="decision-callout"><b>قرار مقترح:</b> أكبر فقد يحدث قبل البدء. اختبر جعل بطاقة «أكمل أذكار الصباح» أول عنصر ظاهر بدل إضافة خطوة تسجيل جديدة.</div>
+        </article>
+      </section>
+
+      <div class="privacy-strip"><span style="font-size:18px">⌘</span><div><strong>وعد القياس في أذكاري:</strong> لا تُسجّل نصوص الأذكار، ولا الموقع الدقيق، ولا أي محتوى خاص. تُجمع الأحداث بأرقام مجهّلة ومجمّعة فقط، ويظل عرض هذه الصفحة محصورًا بصلاحية المطوّر.</div></div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const datasets = {
+      today: { labels: ['6 ص','9 ص','12 م','3 م','6 م','9 م'], visitors: [42,76,58,51,83,96], sessions: [61,108,79,73,121,138], kpi: ['406','622','1,441','158','—'], trends: ['+10.4%','+8.8%','+7.9%','+5.2%','تحتاج 7 أيام'], note: 'اليوم حتى الآن — تُحدّث الأرقام كل 15 دقيقة', peak: '96', avg: '4د 21ث', hour: '9:00 م' },
+      week: { labels: ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'], visitors: [139,167,154,188,173,217,246], sessions: [218,264,236,298,274,339,417], kpi: ['1,284','2,046','4,621','476','31.8%'], trends: ['+18.2%','+12.6%','+9.4%','+7.1%','+3.8 نقاط'], note: 'آخر 7 أيام — التحديث اليومي عند 00:00', peak: '246', avg: '4د 38ث', hour: '8:00 م' },
+      month: { labels: ['1','5','10','15','20','25','30'], visitors: [493,628,584,741,681,819,937], sessions: [754,972,902,1146,1054,1268,1459], kpi: ['8,940','14,115','32,806','3,220','29.4%'], trends: ['+22.8%','+17.3%','+14.5%','+10.2%','+2.1 نقاط'], note: 'آخر 30 يومًا — تُعرض القيم على مستوى اليوم', peak: '937', avg: '4د 44ث', hour: '8:00 م' }
+    };
+    const ids = ['uniqueVisitors','sessions','opens','logins','retention'];
+    const trendIds = ['uniqueTrend','sessionTrend','opensTrend','loginTrend','retentionTrend'];
+    let currentRange = 'week';
+    let currentPlatform = 'all';
+    let toastTimer;
+
+    function platformFactor() {
+      return {all:1, ios:.42, android:.44, web:.14}[currentPlatform] || 1;
+    }
+    function formatNum(value) { return new Intl.NumberFormat('en-US').format(Math.round(value)); }
+    function render() {
+      const d = datasets[currentRange]; const factor = platformFactor();
+      ids.forEach((id, i) => {
+        const raw = d.kpi[i];
+        const el = document.getElementById(id);
+        if (raw === '—') el.textContent = raw;
+        else if (raw.includes('%')) el.textContent = (parseFloat(raw) * factor).toFixed(1) + '%';
+        else el.textContent = formatNum(Number(raw.replace(/,/g,'')) * factor);
+      });
+      trendIds.forEach((id, i) => document.getElementById(id).textContent = d.trends[i]);
+      document.getElementById('chartNote').textContent = d.note + (currentPlatform === 'all' ? '' : ' — تصفية: ' + document.querySelector('#platform option:checked').textContent);
+      document.getElementById('peakVisitors').textContent = formatNum(Number(d.peak) * factor);
+      document.getElementById('avgSession').textContent = d.avg;
+      document.getElementById('peakHour').textContent = d.hour;
+      const bars = document.getElementById('bars'); bars.innerHTML = '';
+      const max = Math.max(...d.sessions);
+      d.labels.forEach((label, i) => {
+        const group = document.createElement('div'); group.className = 'bar-group'; group.title = `${label}: ${formatNum(d.visitors[i]*factor)} زائر، ${formatNum(d.sessions[i]*factor)} جلسة`;
+        const visitor = document.createElement('div'); visitor.className = 'bar visitors'; visitor.style.height = `${Math.max(6, d.visitors[i] / max * 100)}%`;
+        const session = document.createElement('div'); session.className = 'bar sessions'; session.style.height = `${Math.max(6, d.sessions[i] / max * 100)}%`;
+        group.append(visitor, session); bars.append(group);
+      });
+      document.getElementById('xlabels').innerHTML = d.labels.map(x => `<span>${x}</span>`).join('');
+      const suffix = currentPlatform === 'all' ? '' : ' بعد التصفية';
+      document.getElementById('featureCount').textContent = '5 مزايا' + suffix;
+    }
+    function showToast(message) {
+      const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+    document.querySelectorAll('[data-range]').forEach(btn => btn.addEventListener('click', () => {
+      currentRange = btn.dataset.range; document.querySelectorAll('[data-range]').forEach(x => x.classList.toggle('active', x === btn)); render();
+    }));
+    document.getElementById('platform').addEventListener('change', e => { currentPlatform = e.target.value; render(); showToast('تمت تصفية النموذج حسب المنصة المختارة.'); });
+    document.getElementById('refresh').addEventListener('click', () => { render(); showToast('تم تحديث بيانات النموذج — آخر مزامنة الآن.'); });
+    document.getElementById('export').addEventListener('click', () => {
+      const d = datasets[currentRange], f = platformFactor();
+      const rows = [['المؤشر','القيمة'],['زوار فريدون',formatNum(Number(d.kpi[0].replace(/,/g,''))*f)],['جلسات الاستخدام',formatNum(Number(d.kpi[1].replace(/,/g,''))*f)],['مرات فتح التطبيق',formatNum(Number(d.kpi[2].replace(/,/g,''))*f)],['تسجيلات الدخول',formatNum(Number(d.kpi[3].replace(/,/g,''))*f)],['الاحتفاظ اليوم السابع',d.kpi[4]]];
+      const blob = new Blob(['\ufeff' + rows.map(row => row.join(',')).join('\n')], {type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'athkari-analytics-sample.csv'; a.click(); URL.revokeObjectURL(url);
+      showToast('تم إنشاء ملخص CSV تجريبي للتنزيل.');
+    });
+    document.querySelectorAll('.nav button').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('active', x === btn)); showToast(`قسم «${btn.dataset.view}» قيد التصميم في هذه المعاينة.`); }));
+    render();
+  </script>
+</body>
+</html>
